@@ -1,32 +1,32 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     overflow: hidden;
-    background-color: #1a1a1a;
-    color: #fff;
+    background-color: #000;
+    color: #ededed;
     display: flex;
     height: 100vh;
 }
 
 .controls {
-    width: 320px;
-    background: #2a2a2a;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+    width: 300px;
+    background: #0a0a0a;
+    padding: 24px;
+    border-right: 1px solid #333;
     z-index: 10;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
     overflow-y: auto;
 }
 
 h1 {
-    font-size: 1.2rem;
-    margin-top: 0;
-    color: #eee;
-    border-bottom: 1px solid #444;
-    padding-bottom: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0;
+    color: #fff;
+    letter-spacing: -0.02em;
 }
 
 #preview-container {
@@ -35,40 +35,50 @@ h1 {
     background: #000;
 }
 
-/* Tabs */
+/* Tabs - Vercel Style */
 .tabs {
     display: flex;
-    gap: 5px;
-    margin-bottom: 10px;
+    gap: 4px;
+    padding: 4px;
+    background: #171717;
+    border-radius: 8px;
 }
 
 .tab-btn {
     flex: 1;
-    padding: 8px;
-    background: #333;
+    padding: 8px 12px;
+    background: transparent;
     border: none;
-    color: #aaa;
+    color: #888;
     cursor: pointer;
-    border-radius: 4px;
-    font-size: 0.9rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.tab-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .tab-btn.active {
-    background: #4CAF50;
-    color: white;
+    background: #262626;
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .tab-panel {
     display: none;
     flex-direction: column;
-    gap: 15px;
+    gap: 16px;
 }
 
 .tab-panel.active {
     display: flex;
 }
 
-/* 文件上传按钮样式 */
+/* 文件上传按钮样式 - Vercel Style */
 input[type="file"] {
     /* display: none; */ 
 }
@@ -78,81 +88,275 @@ input[type="file"] {
 }
 
 .custom-file-upload {
-    border: 1px dashed #666;
-    display: block;
-    padding: 20px;
+    border: 1px dashed #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
     cursor: pointer;
     text-align: center;
-    border-radius: 4px;
-    transition: all 0.3s;
-    color: #aaa;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    color: #666;
+    background: #0a0a0a;
+    font-size: 0.9rem;
+    gap: 8px;
+}
+
+.custom-file-upload .upload-icon {
+    font-size: 1.5rem;
+    opacity: 0.6;
+}
+
+.custom-file-upload .upload-text {
+    font-weight: 500;
+}
+
+.custom-file-upload .upload-hint {
+    font-size: 0.7rem;
+    color: #555;
+    margin-top: 4px;
 }
 
 .custom-file-upload:hover {
-    border-color: #4CAF50;
-    color: #4CAF50;
-    background: rgba(76, 175, 80, 0.1);
+    border-color: #fff;
+    color: #fff;
+    background: #111;
 }
 
-/* 六面图输入 */
-.cubemap-inputs {
+.custom-file-upload:hover .upload-icon {
+    opacity: 1;
+}
+
+/* Thumbnail Preview - 2:1 Panorama */
+.thumbnail-preview {
+    background: #171717;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid #262626;
+}
+
+.thumbnail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.thumbnail-change {
+    background: transparent;
+    border: 1px solid #444;
+    color: #888;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.thumbnail-change:hover {
+    border-color: #fff;
+    color: #fff;
+}
+
+.thumbnail-container {
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    background: #0a0a0a;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.thumbnail-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.thumbnail-info {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #555;
+    text-align: center;
+}
+
+/* Cubemap Grid */
+.cubemap-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.cube-thumb {
+    background: #171717;
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid #262626;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.cube-thumb:hover {
+    border-color: #444;
+}
+
+.cube-thumb.loaded {
+    border-color: #4CAF50;
+    cursor: grab;
+}
+
+.cube-thumb.loaded:active {
+    cursor: grabbing;
+}
+
+.cube-thumb.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.cube-thumb.drag-over {
+    border-color: #fff;
+    background: #222;
+    transform: scale(1.02);
+}
+
+.cube-thumb-label {
+    font-size: 0.65rem;
+    color: #666;
+    margin-bottom: 6px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.cube-thumb-img {
+    aspect-ratio: 1;
+    background: #0a0a0a;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cube-thumb-placeholder {
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.cube-thumb:hover .cube-thumb-placeholder {
+    color: #666;
+}
+
+.cube-thumb-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Batch Upload */
+.batch-upload-area {
+    margin-bottom: 8px;
+}
+
+.drag-hint {
+    font-size: 0.7rem;
+    color: #555;
+    text-align: center;
+    margin-top: 8px;
+    padding: 6px;
+    background: #111;
+    border-radius: 6px;
+    border: 1px dashed #333;
+}
+
+.batch-upload {
+    padding: 20px 16px;
+}
+
+/* 六面图输入 - Hidden, using grid now */
+.cubemap-inputs {
+    display: none;
 }
 
 .cube-input {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
+    padding: 12px;
+    background: #171717;
+    border-radius: 8px;
+    border: 1px solid #262626;
+    transition: border-color 0.15s ease;
+}
+
+.cube-input:hover {
+    border-color: #444;
 }
 
 .cube-input label {
-    font-size: 0.8rem;
-    color: #ccc;
+    font-size: 0.75rem;
+    color: #888;
+    font-weight: 500;
 }
 
 .cube-file {
     font-size: 0.7rem;
     width: 100%;
-    color: #aaa;
+    color: #666;
 }
 
-button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 12px 20px;
+.cube-file::file-selector-button {
+    display: none;
+}
+
+/* Action Buttons - Vercel Style */
+.actions button {
+    background: #fff;
+    color: #000;
+    padding: 10px 16px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     width: 100%;
-    font-size: 1rem;
-    transition: background-color 0.3s;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
 }
 
-button:disabled {
-    background-color: #555;
+.actions button:disabled {
+    background: #262626;
+    color: #666;
     cursor: not-allowed;
-    opacity: 0.7;
 }
 
-button:hover:not(:disabled) {
-    background-color: #45a049;
+.actions button:hover:not(:disabled) {
+    background: #ccc;
 }
 
-.settings label {
-    display: block;
-    margin-bottom: 5px;
-    color: #ccc;
+.actions button:active:not(:disabled) {
+    transform: scale(0.98);
 }
 
-select {
-    width: 100%;
-    padding: 8px;
-    background: #333;
-    border: 1px solid #555;
-    color: #fff;
-    border-radius: 4px;
+/* Status - Vercel Style */
+#status {
+    font-size: 0.8rem;
+    color: #666;
+    padding: 12px;
+    background: #171717;
+    border-radius: 8px;
+    border-left: 2px solid #333;
+    min-height: 20px;
+}
+
+#status:empty {
+    display: none;
 }
 
 /* 加载提示 */
@@ -162,10 +366,28 @@ select {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0, 0, 0, 0.8);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 100;
     display: none;
+}
+
+/* Scrollbar - Vercel Style */
+.controls::-webkit-scrollbar {
+    width: 6px;
+}
+
+.controls::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.controls::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+}
+
+.controls::-webkit-scrollbar-thumb:hover {
+    background: #444;
 }

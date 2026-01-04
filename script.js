@@ -3,17 +3,24 @@ const container = document.getElementById('preview-container');
 const fileInput = document.getElementById('fileInput');
 const exportBtn = document.getElementById('exportBtn');
 const exportPanoBtn = document.getElementById('exportPanoBtn');
-const sizeSelect = document.getElementById('sizeSelect');
 const statusDiv = document.getElementById('status');
+const batchFileInput = document.getElementById('batchFileInput');
+
+// 自动计算的导出尺寸
+let autoExportSize = 1024;
 
 // Tab 元素
 const tabBtns = document.querySelectorAll('.tab-btn');
 const tabPanels = document.querySelectorAll('.tab-panel');
 const cubeInputs = document.querySelectorAll('.cube-file');
+const cubeThumbs = document.querySelectorAll('.cube-thumb');
 
 let currentTexture = null;
+let currentPanoImage = null; // 保存当前全景图用于缩略图
 let currentMode = 'pano2cube'; // 'pano2cube' or 'cube2pano'
 let cubeImages = { px: null, nx: null, py: null, ny: null, pz: null, nz: null };
+let cubeImageSrcs = { px: null, nx: null, py: null, ny: null, pz: null, nz: null }; // 保存图片 src 用于缩略图
+let dragSourceFace = null; // 拖拽源
 
 init();
 
@@ -46,6 +53,36 @@ function init() {
     // 监听六面图上传
     cubeInputs.forEach(input => {
         input.addEventListener('change', handleCubeUpload);
+    });
+    
+    // 监听六面图缩略图点击
+    cubeThumbs.forEach(thumb => {
+        thumb.addEventListener('click', (e) => {
+            // 如果正在拖拽，不触发点击
+            if (thumb.classList.contains('dragging')) return;
+            const face = thumb.dataset.face;
+            const input = thumb.querySelector('.cube-file');
+            input.click();
+        });
+        
+        // 拖拽事件
+        thumb.addEventListener('dragstart', handleDragStart);
+        thumb.addEventListener('dragend', handleDragEnd);
+        thumb.addEventListener('dragover', handleDragOver);
+        thumb.addEventListener('dragleave', handleDragLeave);
+        thumb.addEventListener('drop', handleDrop);
+    });
+    
+    // 监听批量上传
+    batchFileInput.addEventListener('change', handleBatchUpload);
+    
+    // 监听缩略图更换按钮
+    document.querySelectorAll('.thumbnail-change').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const targetId = btn.dataset.target;
+            document.getElementById(targetId).click();
+        });
     });
 
     // 7. 监听导出按钮
@@ -88,9 +125,37 @@ function switchTab(tabId) {
         previewMesh = null;
     }
     currentTexture = null;
+    currentPanoImage = null;
     statusDiv.textContent = "";
     exportBtn.disabled = true;
     exportPanoBtn.disabled = true;
+    
+    // 重置缩略图显示
+    resetThumbnails();
+}
+
+function resetThumbnails() {
+    // 重置全景图缩略图
+    const panoPreview = document.getElementById('pano-preview');
+    const panoUpload = document.getElementById('panoUploadArea');
+    if (panoPreview) panoPreview.style.display = 'none';
+    if (panoUpload) panoUpload.style.display = 'flex';
+    
+    // 重置六面图缩略图
+    cubeThumbs.forEach(thumb => {
+        const placeholder = thumb.querySelector('.cube-thumb-placeholder');
+        const preview = thumb.querySelector('.cube-thumb-preview');
+        if (placeholder) placeholder.style.display = 'block';
+        if (preview) {
+            preview.style.display = 'none';
+            preview.src = '';
+        }
+        thumb.classList.remove('loaded');
+    });
+    
+    // 重置 cubeImages
+    cubeImages = { px: null, nx: null, py: null, ny: null, pz: null, nz: null };
+    cubeImageSrcs = { px: null, nx: null, py: null, ny: null, pz: null, nz: null };
 }
 
 function animate() {
@@ -113,11 +178,25 @@ function handleFileUpload(event) {
     reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
+            currentPanoImage = img;
             loadTexture(img);
+            updatePanoThumbnail(e.target.result, img.width, img.height, file.name);
         };
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+}
+
+function updatePanoThumbnail(src, width, height, filename) {
+    const previewDiv = document.getElementById('pano-preview');
+    const thumbImg = document.getElementById('pano-thumb');
+    const infoDiv = document.getElementById('pano-info');
+    const uploadArea = document.getElementById('panoUploadArea');
+    
+    thumbImg.src = src;
+    infoDiv.textContent = `${filename} (${width}×${height})`;
+    previewDiv.style.display = 'block';
+    uploadArea.style.display = 'none';
 }
 
 function handleCubeUpload(event) {
@@ -130,11 +209,173 @@ function handleCubeUpload(event) {
         const img = new Image();
         img.onload = function() {
             cubeImages[face] = img;
+            cubeImageSrcs[face] = e.target.result;
+            updateCubeThumbnail(face, e.target.result);
             checkCubeReady();
         };
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+}
+
+function updateCubeThumbnail(face, src) {
+    const thumb = document.querySelector(`.cube-thumb[data-face="${face}"]`);
+    if (!thumb) return;
+    
+    const placeholder = thumb.querySelector('.cube-thumb-placeholder');
+    const preview = thumb.querySelector('.cube-thumb-preview');
+    
+    if (src) {
+        placeholder.style.display = 'none';
+        preview.src = src;
+        preview.style.display = 'block';
+        thumb.classList.add('loaded');
+    } else {
+        placeholder.style.display = 'block';
+        preview.src = '';
+        preview.style.display = 'none';
+        thumb.classList.remove('loaded');
+    }
+}
+
+// 拖拽相关函数
+function handleDragStart(e) {
+    const face = this.dataset.face;
+    // 只有已加载图片的才能拖拽
+    if (!cubeImages[face]) {
+        e.preventDefault();
+        return;
+    }
+    
+    dragSourceFace = face;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', face);
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    // 移除所有 drag-over 状态
+    cubeThumbs.forEach(thumb => thumb.classList.remove('drag-over'));
+    dragSourceFace = null;
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    const targetFace = this.dataset.face;
+    // 不能拖到自己身上
+    if (targetFace !== dragSourceFace) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    this.classList.remove('drag-over');
+    
+    const sourceFace = e.dataTransfer.getData('text/plain');
+    const targetFace = this.dataset.face;
+    
+    if (sourceFace === targetFace) return;
+    
+    // 交换图片数据
+    swapCubeFaces(sourceFace, targetFace);
+}
+
+function swapCubeFaces(face1, face2) {
+    // 交换 cubeImages
+    const tempImg = cubeImages[face1];
+    cubeImages[face1] = cubeImages[face2];
+    cubeImages[face2] = tempImg;
+    
+    // 交换 cubeImageSrcs
+    const tempSrc = cubeImageSrcs[face1];
+    cubeImageSrcs[face1] = cubeImageSrcs[face2];
+    cubeImageSrcs[face2] = tempSrc;
+    
+    // 更新缩略图显示
+    updateCubeThumbnail(face1, cubeImageSrcs[face1]);
+    updateCubeThumbnail(face2, cubeImageSrcs[face2]);
+    
+    // 如果六面图都加载完成，实时更新预览
+    const faces = ['px', 'nx', 'py', 'ny', 'pz', 'nz'];
+    const ready = faces.every(f => cubeImages[f]);
+    if (ready) {
+        loadCubeTexture();
+        statusDiv.textContent = `已交换 ${getFaceName(face1)} 和 ${getFaceName(face2)}`;
+    }
+}
+
+function getFaceName(face) {
+    const names = {
+        px: 'Right',
+        nx: 'Left', 
+        py: 'Top',
+        ny: 'Bottom',
+        pz: 'Front',
+        nz: 'Back'
+    };
+    return names[face] || face;
+}
+
+function handleBatchUpload(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    
+    // 文件名匹配规则
+    const facePatterns = {
+        px: /(?:right|px|posx|pos_x|_r\.|_right\.)/i,
+        nx: /(?:left|nx|negx|neg_x|_l\.|_left\.)/i,
+        py: /(?:top|up|py|posy|pos_y|_u\.|_top\.|_up\.)/i,
+        ny: /(?:bottom|down|ny|negy|neg_y|_d\.|_bottom\.|_down\.)/i,
+        pz: /(?:front|pz|posz|pos_z|_f\.|_front\.)/i,
+        nz: /(?:back|nz|negz|neg_z|_b\.|_back\.)/i
+    };
+    
+    let matchedCount = 0;
+    const matchedFaces = [];
+    
+    Array.from(files).forEach(file => {
+        const filename = file.name.toLowerCase();
+        
+        for (const [face, pattern] of Object.entries(facePatterns)) {
+            if (pattern.test(filename)) {
+                matchedFaces.push({ face, file });
+                matchedCount++;
+                break;
+            }
+        }
+    });
+    
+    // 按顺序处理匹配的文件
+    matchedFaces.forEach(({ face, file }) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                cubeImages[face] = img;
+                cubeImageSrcs[face] = e.target.result;
+                updateCubeThumbnail(face, e.target.result);
+                checkCubeReady();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    if (matchedCount > 0) {
+        statusDiv.textContent = `已自动匹配 ${matchedCount} 张图片`;
+    } else {
+        statusDiv.textContent = '未能自动匹配文件，请检查文件名包含: right/left/top/bottom/front/back';
+    }
 }
 
 function checkCubeReady() {
@@ -199,10 +440,10 @@ function loadCubeTexture() {
     scene.add(previewMesh);
 
     exportPanoBtn.disabled = false;
-    statusDiv.textContent = "六面图加载完成，可以预览和导出。";
     
-    // 更新导出选项 (基于第一张图的宽度)
-    updateExportOptions(cubeImages.px.width * 4); // 估算全景图宽度
+    // 自动计算导出尺寸 (基于第一张图的宽度)
+    autoExportSize = calculateOptimalSize(cubeImages.px.width);
+    statusDiv.textContent = `六面图加载完成，导出尺寸: ${autoExportSize * 2}x${autoExportSize}`;
 }
 
 function loadTexture(image) {
@@ -220,10 +461,17 @@ function loadTexture(image) {
         }
     }
     
-    // 创建球体
-    const geometry = new THREE.SphereGeometry(500, 60, 40);
+    // 创建球体 - 增加细分数以减少极点变形
+    // widthSegments: 128, heightSegments: 64 提供更好的极点渲染质量
+    const geometry = new THREE.SphereGeometry(500, 128, 64);
     // 翻转 X 轴，使纹理在内部正确显示
     geometry.scale(-1, 1, 1);
+    
+    // 使用各向异性过滤提升纹理质量
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = true;
     
     const material = new THREE.MeshBasicMaterial({ map: texture });
     previewMesh = new THREE.Mesh(geometry, material);
@@ -231,70 +479,27 @@ function loadTexture(image) {
 
     currentTexture = texture;
     
-    // 根据图片尺寸更新导出选项
-    updateExportOptions(image.width);
+    // 自动计算最佳导出尺寸
+    autoExportSize = calculateOptimalSize(image.width / 4);
 
     exportBtn.disabled = false;
-    statusDiv.textContent = `图片加载完成 (${image.width}x${image.height})，已自动选择推荐分辨率。`;
+    statusDiv.textContent = `图片加载完成 (${image.width}x${image.height})，导出尺寸: ${autoExportSize}x${autoExportSize}`;
 }
 
-function updateExportOptions(imgWidth) {
-    sizeSelect.innerHTML = ''; 
-    
-    // 估算建议尺寸：全景图宽度的 1/4
-    // 例如 8192 宽度的图，建议 2048
-    let baseSize = imgWidth / 4;
-    
+function calculateOptimalSize(baseSize) {
     // 找最近的 2 的幂次方
-    let recommendedSize = Math.pow(2, Math.round(Math.log2(baseSize)));
+    let optimalSize = Math.pow(2, Math.round(Math.log2(baseSize)));
     
-    // 限制最小 512
-    recommendedSize = Math.max(512, recommendedSize);
-
-    const standardSizes = [512, 1024, 2048, 4096, 8192];
-    let hasSelected = false;
+    // 限制在 512 到 8192 之间
+    optimalSize = Math.max(512, Math.min(8192, optimalSize));
     
-    standardSizes.forEach(size => {
-        // 过滤掉明显过大的选项，但至少保留到 4096
-        if (size > Math.max(imgWidth, 4096) && size > recommendedSize) return; 
-
-        const option = document.createElement('option');
-        option.value = size;
-        option.textContent = `${size}x${size}`;
-        
-        if (size === recommendedSize) {
-            option.selected = true;
-            option.textContent += ' (推荐)';
-            hasSelected = true;
-        }
-        
-        sizeSelect.appendChild(option);
-    });
-
-    // 如果没有选中任何项（推荐值不在标准列表中），选中最接近的一个
-    if (!hasSelected && sizeSelect.options.length > 0) {
-        let minDiff = Infinity;
-        let bestIndex = 0;
-        for(let i=0; i<sizeSelect.options.length; i++) {
-            const val = parseInt(sizeSelect.options[i].value);
-            const diff = Math.abs(val - recommendedSize);
-            if(diff < minDiff) {
-                minDiff = diff;
-                bestIndex = i;
-            }
-        }
-        sizeSelect.options[bestIndex].selected = true;
-        // 避免重复添加文本
-        if (!sizeSelect.options[bestIndex].textContent.includes('(推荐)')) {
-            sizeSelect.options[bestIndex].textContent += ' (推荐)';
-        }
-    }
+    return optimalSize;
 }
 
 async function exportCubemap() {
     if (!currentTexture) return;
 
-    const size = parseInt(sizeSelect.value);
+    const size = autoExportSize;
     statusDiv.textContent = `正在生成 ${size}x${size} 六面图...`;
     exportBtn.disabled = true;
 
@@ -362,7 +567,7 @@ async function exportCubemap() {
 async function exportEquirectangular() {
     if (!previewMesh) return;
 
-    const height = parseInt(sizeSelect.value);
+    const height = autoExportSize;
     const width = height * 2;
     
     statusDiv.textContent = `正在生成 ${width}x${height} 全景图...`;

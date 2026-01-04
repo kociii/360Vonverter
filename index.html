@@ -18,10 +18,23 @@
         <!-- 模式 1: 2:1 转 六面 -->
         <div id="pano2cube-panel" class="tab-panel active">
             <div class="input-group">
-                <label for="fileInput" class="custom-file-upload">
-                    选择 2:1 全景图
+                <label for="fileInput" class="custom-file-upload" id="panoUploadArea">
+                    <span class="upload-icon">📁</span>
+                    <span class="upload-text">点击选择 2:1 全景图</span>
                 </label>
                 <input type="file" id="fileInput" accept="image/*">
+            </div>
+            
+            <!-- 缩略图预览 -->
+            <div id="pano-preview" class="thumbnail-preview" style="display: none;">
+                <div class="thumbnail-header">
+                    <span>已选择图片</span>
+                    <button class="thumbnail-change" data-target="fileInput">更换</button>
+                </div>
+                <div class="thumbnail-container">
+                    <img id="pano-thumb" src="" alt="预览">
+                </div>
+                <div class="thumbnail-info" id="pano-info"></div>
             </div>
             
             <div class="actions">
@@ -31,49 +44,76 @@
 
         <!-- 模式 2: 六面 转 2:1 -->
         <div id="cube2pano-panel" class="tab-panel">
-            <div class="cubemap-inputs">
-                <div class="cube-input">
-                    <label>Right (PX)</label>
-                    <input type="file" class="cube-file" data-face="px" accept="image/*">
+            <!-- 批量上传区域 -->
+            <div class="batch-upload-area">
+                <label for="batchFileInput" class="custom-file-upload batch-upload">
+                    <span class="upload-icon">📁</span>
+                    <span class="upload-text">批量选择六面图</span>
+                    <span class="upload-hint">自动识别: right/left/top/bottom/front/back 或 px/nx/py/ny/pz/nz</span>
+                </label>
+                <input type="file" id="batchFileInput" accept="image/*" multiple style="display: none;">
+            </div>
+            
+            <!-- 六面图缩略图网格 -->
+            <div class="cubemap-grid">
+                <div class="cube-thumb" data-face="px" draggable="true">
+                    <div class="cube-thumb-label">Right (PX)</div>
+                    <div class="cube-thumb-img">
+                        <span class="cube-thumb-placeholder">+</span>
+                        <img class="cube-thumb-preview" style="display: none;">
+                    </div>
+                    <input type="file" class="cube-file" data-face="px" accept="image/*" style="display: none;">
                 </div>
-                <div class="cube-input">
-                    <label>Left (NX)</label>
-                    <input type="file" class="cube-file" data-face="nx" accept="image/*">
+                <div class="cube-thumb" data-face="nx" draggable="true">
+                    <div class="cube-thumb-label">Left (NX)</div>
+                    <div class="cube-thumb-img">
+                        <span class="cube-thumb-placeholder">+</span>
+                        <img class="cube-thumb-preview" style="display: none;">
+                    </div>
+                    <input type="file" class="cube-file" data-face="nx" accept="image/*" style="display: none;">
                 </div>
-                <div class="cube-input">
-                    <label>Top (PY)</label>
-                    <input type="file" class="cube-file" data-face="py" accept="image/*">
+                <div class="cube-thumb" data-face="py" draggable="true">
+                    <div class="cube-thumb-label">Top (PY)</div>
+                    <div class="cube-thumb-img">
+                        <span class="cube-thumb-placeholder">+</span>
+                        <img class="cube-thumb-preview" style="display: none;">
+                    </div>
+                    <input type="file" class="cube-file" data-face="py" accept="image/*" style="display: none;">
                 </div>
-                <div class="cube-input">
-                    <label>Bottom (NY)</label>
-                    <input type="file" class="cube-file" data-face="ny" accept="image/*">
+                <div class="cube-thumb" data-face="ny" draggable="true">
+                    <div class="cube-thumb-label">Bottom (NY)</div>
+                    <div class="cube-thumb-img">
+                        <span class="cube-thumb-placeholder">+</span>
+                        <img class="cube-thumb-preview" style="display: none;">
+                    </div>
+                    <input type="file" class="cube-file" data-face="ny" accept="image/*" style="display: none;">
                 </div>
-                <div class="cube-input">
-                    <label>Front (PZ)</label>
-                    <input type="file" class="cube-file" data-face="pz" accept="image/*">
+                <div class="cube-thumb" data-face="pz" draggable="true">
+                    <div class="cube-thumb-label">Front (PZ)</div>
+                    <div class="cube-thumb-img">
+                        <span class="cube-thumb-placeholder">+</span>
+                        <img class="cube-thumb-preview" style="display: none;">
+                    </div>
+                    <input type="file" class="cube-file" data-face="pz" accept="image/*" style="display: none;">
                 </div>
-                <div class="cube-input">
-                    <label>Back (NZ)</label>
-                    <input type="file" class="cube-file" data-face="nz" accept="image/*">
+                <div class="cube-thumb" data-face="nz" draggable="true">
+                    <div class="cube-thumb-label">Back (NZ)</div>
+                    <div class="cube-thumb-img">
+                        <span class="cube-thumb-placeholder">+</span>
+                        <img class="cube-thumb-preview" style="display: none;">
+                    </div>
+                    <input type="file" class="cube-file" data-face="nz" accept="image/*" style="display: none;">
                 </div>
             </div>
+            
+            <div class="drag-hint">💡 拖拽已加载的图片可交换位置</div>
+            
             <div class="actions">
                 <button id="exportPanoBtn" disabled>导出 2:1 全景图</button>
             </div>
         </div>
         
-        <div class="settings">
-            <label>导出尺寸: 
-                <select id="sizeSelect">
-                    <option value="512">512</option>
-                    <option value="1024" selected>1024</option>
-                    <option value="2048">2048</option>
-                    <option value="4096">4096</option>
-                    <option value="8192">8192</option>
-                </select>
-            </label>
-        </div>
-        <div id="status" style="margin-top: 10px; font-size: 0.9em; color: #aaa;"></div>
+        <div id="status"></div>
     </div>
 
     <div id="preview-container"></div>

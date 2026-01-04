@@ -1,65 +1,91 @@
-# 全景图转换工具 (360 Panorama Converter)
+# 360° 全景图转换工具
 
-这是一个基于 Web 的全景图格式转换工具，支持在 **Equirectangular (2:1 全景图)** 和 **Cubemap (六面体贴图)** 之间进行相互转换，并提供实时的 3D 预览功能。
+一个基于 Web 的全景图格式转换工具，支持 **Equirectangular (2:1 全景图)** 和 **Cubemap (六面体贴图)** 之间的相互转换，并提供实时 3D 预览。
+
+![下载引导](download.png)
 
 ## ✨ 功能特性
 
-*   **2:1 转 六面 (Pano to Cube)**
-    *   将一张 2:1 比例的 Equirectangular 全景图转换为 6 张独立的 Cubemap 贴图（上、下、左、右、前、后）。
-    *   支持导出为 ZIP 压缩包。
-*   **六面 转 2:1 (Cube to Pano)**
-    *   将 6 张 Cubemap 贴图合并转换为一张 2:1 的 Equirectangular 全景图。
-    *   支持分别上传 PX, NX, PY, NY, PZ, NZ 六个面的图片。
-*   **实时预览**
-    *   利用 Three.js 提供流畅的 3D 全景预览。
-    *   支持鼠标拖拽查看全景效果。
-*   **自定义导出尺寸**
-    *   支持选择 512px 到 8192px 的导出分辨率。
-*   **纯前端运行**
-    *   所有处理均在浏览器本地完成，无需上传图片到服务器，保护隐私且速度快。
+### 2:1 全景图 → 六面图
+- 上传一张 2:1 比例的 Equirectangular 全景图
+- 自动转换为 6 张独立的 Cubemap 贴图（Right/Left/Top/Bottom/Front/Back）
+- 支持导出为 ZIP 压缩包
+
+### 六面图 → 2:1 全景图
+- **批量上传**：一次选择多张图片，自动根据文件名识别对应面
+- **智能识别**：支持多种命名规则
+  - `right` / `left` / `top` / `bottom` / `front` / `back`
+  - `px` / `nx` / `py` / `ny` / `pz` / `nz`
+  - `posx` / `negx` / `posy` / `negy` / `posz` / `negz`
+  - `_r` / `_l` / `_u` / `_d` / `_f` / `_b`
+- **拖拽调整**：如果自动识别不准确，可以直接拖拽缩略图交换位置
+- **实时预览**：调整后立即更新 3D 预览效果
+
+### 通用特性
+- 🎯 **实时 3D 预览**：支持鼠标拖拽 360° 查看全景效果
+- 📐 **自动计算尺寸**：根据上传图片自动选择最佳导出分辨率
+- 🔒 **本地处理**：所有转换在浏览器本地完成，无需上传服务器
+- 🖼️ **缩略图预览**：上传后显示图片缩略图，支持更换
 
 ## 🚀 如何使用
 
-### 方式一：直接打开
-由于项目是纯静态网页，您可以直接双击 `index.html` 在浏览器中打开（部分浏览器可能因 CORS 策略限制本地文件访问，建议使用方式二）。
+### 方式一：在线使用
+直接访问部署的网页即可使用。
 
-### 方式二：本地服务器（推荐）
-为了获得最佳体验并避免跨域问题，建议使用本地服务器运行。
-
-如果您安装了 Python：
+### 方式二：本地运行
 ```bash
+# 克隆项目
+git clone git@github.com:kociii/360Vonverter.git
+
+# 进入目录
+cd 360Vonverter
+
+# 使用本地服务器运行（推荐）
 # Python 3
 python -m http.server 8000
 
-# Python 2
-python -m SimpleHTTPServer 8000
+# 或使用 VS Code Live Server 插件
 ```
-然后在浏览器访问 `http://localhost:8000`。
+然后在浏览器访问 `http://localhost:8000`
 
-或者使用 VS Code 的 **Live Server** 插件右键打开 `index.html`。
+## 📖 使用说明
+
+### 2:1 转六面图
+1. 选择「2:1 转 六面」标签
+2. 点击上传区域选择一张 2:1 全景图
+3. 等待图片加载完成，可在右侧预览
+4. 点击「导出六面图」下载 ZIP 包
+
+### 六面图转 2:1
+1. 选择「六面 转 2:1」标签
+2. **方式 A**：点击「批量选择六面图」一次上传所有图片，系统自动识别
+3. **方式 B**：点击各个位置单独上传对应图片
+4. 如需调整位置，直接拖拽缩略图到目标位置进行交换
+5. 六张图片加载完成后，点击「导出 2:1 全景图」
 
 ## 🛠 技术栈
 
-*   **HTML5 / CSS3**: 界面布局与样式。
-*   **JavaScript (ES6+)**: 核心逻辑。
-*   **[Three.js](https://threejs.org/)**: 用于 3D 场景渲染和全景图预览。
-*   **[JSZip](https://stuk.github.io/jszip/)**: 用于打包下载转换后的六面图。
-*   **[FileSaver.js](https://github.com/eligrey/FileSaver.js)**: 用于文件保存。
+- **Three.js** - 3D 场景渲染与全景图预览
+- **JSZip** - 打包下载转换后的六面图
+- **FileSaver.js** - 文件保存
+- **HTML5 Canvas** - 图像处理与转换
 
 ## 📂 项目结构
 
 ```
 .
-├── index.html      # 主页面结构
-├── script.js       # 核心逻辑与 Three.js 渲染代码
+├── index.html      # 主页面
+├── script.js       # 核心逻辑
 ├── style.css       # 样式文件
-└── README.md       # 项目说明文档
+├── download.png    # 下载引导图
+└── README.md       # 项目说明
 ```
 
 ## 📝 注意事项
 
-*   **性能**: 处理高分辨率（如 8K）全景图时，可能会占用较多内存和 CPU，请耐心等待处理完成。
-*   **浏览器兼容性**: 建议使用最新版本的 Chrome, Firefox, Edge 或 Safari 浏览器以获得最佳 WebGL 支持。
+- 处理高分辨率（如 8K）图片时可能需要较长时间
+- 建议使用 Chrome、Firefox、Edge 或 Safari 最新版本
+- 确保浏览器支持 WebGL
 
 ## 📄 License
 
