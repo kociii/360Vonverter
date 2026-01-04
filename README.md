@@ -29,24 +29,13 @@
 
 ## 🚀 如何使用
 
-### 方式一：在线使用
-直接访问部署的网页即可使用。
+1. **下载项目**：点击右上角绿色的「Code」按钮，选择「Download ZIP」
 
-### 方式二：本地运行
-```bash
-# 克隆项目
-git clone git@github.com:kociii/360Vonverter.git
+   ![下载说明](download.png)
 
-# 进入目录
-cd 360Vonverter
+2. **解压文件**：将下载的 ZIP 文件解压到任意目录
 
-# 使用本地服务器运行（推荐）
-# Python 3
-python -m http.server 8000
-
-# 或使用 VS Code Live Server 插件
-```
-然后在浏览器访问 `http://localhost:8000`
+3. **打开使用**：双击 `index.html` 文件，即可在浏览器中使用
 
 ## 📖 使用说明
 
