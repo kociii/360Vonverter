@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全景图转换工具</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="controls">
+        <h1>全景图转换工具</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="pano2cube">2:1 转 六面</button>
+            <button class="tab-btn" data-tab="cube2pano">六面 转 2:1</button>
+        </div>
+
+        <!-- 模式 1: 2:1 转 六面 -->
+        <div id="pano2cube-panel" class="tab-panel active">
+            <div class="input-group">
+                <label for="fileInput" class="custom-file-upload">
+                    选择 2:1 全景图
+                </label>
+                <input type="file" id="fileInput" accept="image/*">
+            </div>
+            
+            <div class="actions">
+                <button id="exportBtn" disabled>导出六面图 (Cubemap)</button>
+            </div>
+        </div>
+
+        <!-- 模式 2: 六面 转 2:1 -->
+        <div id="cube2pano-panel" class="tab-panel">
+            <div class="cubemap-inputs">
+                <div class="cube-input">
+                    <label>Right (PX)</label>
+                    <input type="file" class="cube-file" data-face="px" accept="image/*">
+                </div>
+                <div class="cube-input">
+                    <label>Left (NX)</label>
+                    <input type="file" class="cube-file" data-face="nx" accept="image/*">
+                </div>
+                <div class="cube-input">
+                    <label>Top (PY)</label>
+                    <input type="file" class="cube-file" data-face="py" accept="image/*">
+                </div>
+                <div class="cube-input">
+                    <label>Bottom (NY)</label>
+                    <input type="file" class="cube-file" data-face="ny" accept="image/*">
+                </div>
+                <div class="cube-input">
+                    <label>Front (PZ)</label>
+                    <input type="file" class="cube-file" data-face="pz" accept="image/*">
+                </div>
+                <div class="cube-input">
+                    <label>Back (NZ)</label>
+                    <input type="file" class="cube-file" data-face="nz" accept="image/*">
+                </div>
+            </div>
+            <div class="actions">
+                <button id="exportPanoBtn" disabled>导出 2:1 全景图</button>
+            </div>
+        </div>
+        
+        <div class="settings">
+            <label>导出尺寸: 
+                <select id="sizeSelect">
+                    <option value="512">512</option>
+                    <option value="1024" selected>1024</option>
+                    <option value="2048">2048</option>
+                    <option value="4096">4096</option>
+                    <option value="8192">8192</option>
+                </select>
+            </label>
+        </div>
+        <div id="status" style="margin-top: 10px; font-size: 0.9em; color: #aaa;"></div>
+    </div>
+
+    <div id="preview-container"></div>
+
+    <!-- 引入 Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- 引入 OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- 引入 JSZip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <!-- 引入 FileSaver -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <script src="script.js"></script>
+</body>
+</html>
